@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "digestcompilator"
+version = "0.1.0"
+description = "The digest compilation microservice"
+authors = ["NiKuma0"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.100.0"
+SQLAlchemy = "^2.0.19"
+asyncpg = "^0.28.0"
+uvicorn = "^0.23.1"
+dependency-injector = "^4.41.0"
+pydantic-settings = "^2.0.2"
+httpx = "^0.24.1"
+alembic = "^1.11.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+isort = "^5.12.0"
+pre-commit = "^3.3.3"
+flake8 = "^6.0.0"
+python-dotenv = "^1.0.0"
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.1"
+faker = "^19.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.init_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
