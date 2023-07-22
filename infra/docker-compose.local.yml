@@ -31,6 +31,8 @@ services:
     image: nginx:1.23.3-alpine
     container_name: procharity_nginx
     restart: always
+    depends_on:
+      - app
     ports:
       - "80:80"
     volumes:
