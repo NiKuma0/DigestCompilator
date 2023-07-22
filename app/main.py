@@ -6,14 +6,12 @@ from app.depends import Container
 from app.api.routers import api_router
 
 
-def init_app() -> FastAPI:
+def init_app(container_factory: type[Container] = Container) -> FastAPI:
+    container = container_factory()
+    container.wire(packages=("app",))
+
     app = FastAPI()
     app.include_router(api_router, prefix="/api")
-
-    @app.on_event("startup")
-    async def _():
-        container = Container()
-        container.wire(packages=("app",))
 
     return app
 
