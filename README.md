@@ -29,7 +29,20 @@ You can also use `docker-compose`. The `infra` directory has some usage examples
     docker compose -f infra/docker-pg.yml up -d
     ```
 
-4. Run it:
+4. Setup migrations
+
+    ```
+    alembic upgrade HEAD
+    ```
+
+5. You can fill database with test data
+
+    ```
+    python fill_db.py
+    ```
+
+
+6. Run it:
 
     ```
     uvicorn app.main:init_app --factory
