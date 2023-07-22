@@ -5,7 +5,7 @@ from abc import ABC
 from sqlalchemy import insert, select, ScalarResult, func, desc
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
-from .models import User, Subscription, Post, Digest
+from .models import User, Subscription, Post, Digest, links
 
 
 Model = TypeVar("Model")
@@ -109,14 +109,14 @@ class DigestRepository(AbstractRepository[Digest]):
                 ).label("relevant"),
             )
             .join(Post.tags)
-            .join(Post.digests)
             .where(Subscription.id.in_([tag.id for tag in user.subscriptions]))
             # Unique posts for each digest
-            .where(Digest.id.not_in(select(Digest.id).where(Digest.user_id == user.id)))
+            .where(Post.id.not_in(select(links.PostDigestLink.post_id).join(Digest).where(Digest.user_id == user.id)))
             .order_by(desc("relevant"))
             .limit(50)
         )
         async with self._sessionmaker() as session:
             posts = await session.scalars(query)
+            posts = posts.all()
             session.expire_all()
-        return await super().create(Digest(posts=posts.all(), user=user))
+        return await super().create(Digest(posts=posts, user=user))
