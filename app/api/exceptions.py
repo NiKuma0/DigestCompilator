@@ -4,7 +4,7 @@ from fastapi import HTTPException
 
 
 class PostNotFoundError(HTTPException):
-    def __init__(self, post_id) -> None:
+    def __init__(self, post_id: int) -> None:
         status_code = HTTPStatus.NOT_FOUND
         detail = f"Post with id={post_id} not found"
         super().__init__(status_code, detail, None)

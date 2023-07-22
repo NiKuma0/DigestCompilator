@@ -18,9 +18,9 @@ async def get_posts(
     api_service: APIService = Depends(Provide[Container.api_service]),
 ) -> Paginator[list[Post]]:
     posts = await api_service.get_all_posts(page=page, page_size=page_size)
-    result = []
+    result: list[Post] = []
     for post in posts:
-        result.append(Post.from_orm(post))
+        result.append(Post.from_model(post))
     return Paginator(data=result, page=page)
 
 
@@ -33,4 +33,4 @@ async def get_post(
     post = await api_service.get_post(post_id)
     if not post:
         raise PostNotFoundError(post_id)
-    return Post.from_orm(post)
+    return Post.from_model(post)

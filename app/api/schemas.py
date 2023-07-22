@@ -22,7 +22,7 @@ class Post(BaseModel):
     publication_date: date
 
     @classmethod
-    def from_orm(cls, post: models.Post):
+    def from_model(cls, post: models.Post):
         return cls(
             id=post.id,
             title=post.title,
@@ -39,9 +39,9 @@ class Digest(BaseModel):
     posts: list["Post"]
 
     @classmethod
-    def from_orm(cls, digest: models.Digest):
+    def from_model(cls, digest: models.Digest):
         return cls(
             id=digest.id,
             user_id=digest.user_id,
-            posts=[Post.from_orm(post) for post in digest.posts],
+            posts=[Post.from_model(post) for post in digest.posts],
         )

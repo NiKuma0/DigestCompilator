@@ -15,4 +15,4 @@ async def get_digest(
     user_id: int, api_service: APIService = Depends(Provide[Container.api_service])
 ) -> Digest:
     digest = await api_service.get_digest(user_id=user_id)
-    return Digest.from_orm(digest)
+    return Digest.from_model(digest)
