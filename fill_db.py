@@ -1,7 +1,7 @@
 import asyncio
 from datetime import date, timedelta
-from typing import Iterable
-from random import shuffle, randint
+from typing import Iterable, Any
+from random import randint, choices
 
 from faker import Faker
 from dependency_injector.wiring import inject, Provide
@@ -19,7 +19,7 @@ def get_create_at() -> date:
 async def create_users(
     user_repository: UserRepository = Provide[Container.user_repository],
     faker: Faker = Faker(),
-    count=100,
+    count: int = 100,
 ):
     return await user_repository.create_all(
         [
@@ -37,7 +37,7 @@ async def create_users(
 async def create_subs(
     subs_repository: SubsRepository = Provide[Container.subs_repository],
     faker: Faker = Faker(),
-    count=20,
+    count: int = 20,
 ):
     return await subs_repository.create_all(
         [
@@ -55,9 +55,9 @@ async def create_subs(
 async def create_posts(
     post_repository: PostRepository = Provide[Container.post_repository],
     faker: Faker = Faker(),
-    count=100,
+    count: int = 100,
 ):
-    data = []
+    data: list[dict[str, Any]] = []
     for _ in range(count):
         data.append(
             dict(
@@ -78,8 +78,7 @@ async def set_subs_users(
     user_repository: UserRepository = Provide[Container.user_repository],
 ):
     for user in users:
-        shuffle(subs)
-        await user_repository.set_subscriptions(user, subs[: randint(1, 20)])
+        await user_repository.set_subscriptions(user, choices(subs, k=randint(1, 20)))
 
 
 @inject
@@ -89,19 +88,18 @@ async def set_tags_posts(
     post_repository: PostRepository = Provide[Container.post_repository],
 ):
     for post in posts:
-        shuffle(subs)
-        await post_repository.set_tags(post, subs[: randint(1, 5)])
+        await post_repository.set_tags(post, choices(subs, k=randint(1, 5)))
 
 
 async def main():
     container = Container()
     container.wire([__name__])
 
-    subs = list(await create_subs())
+    subs = list(await create_subs(count=1_000))
     print("Subscriptions was created")
-    users = await create_users()
+    users = await create_users(count=1_000)
     print("Users was created")
-    posts = await create_posts()
+    posts = await create_posts(count=10_000)
     print("Posts was created")
     await set_tags_posts(posts, subs)
     print("Posts was linked to subs")

@@ -21,7 +21,7 @@ class APIService:
             raise UserDoesNotExists(user_id)
         return user
 
-    async def get_all_posts(self, page=0, page_size=10):
+    async def get_all_posts(self, page: int = 0, page_size: int = 10):
         offset = page * page_size
         return await self._post_repository.get_all(limit=page_size, offset=offset)
 
@@ -32,4 +32,4 @@ class APIService:
         user = await self._get_user(user_id)
         if not user.subscriptions:
             raise UserDoesNotHaveSubscriptions(user_id)
-        return await self._digest_repository.create(user)
+        return await self._digest_repository.create_digest(user)

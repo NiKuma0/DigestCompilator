@@ -1,7 +1,7 @@
 from dependency_injector import providers
 from dependency_injector.containers import DeclarativeContainer
 
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 from app.settings import get_settings
 from app.db import create_engine
@@ -21,9 +21,9 @@ class Container(DeclarativeContainer):
     engine = providers.Singleton(
         create_engine, database_url=settings.provided.database_url
     )
-    sessionmaker = providers.Singleton(
-        async_sessionmaker, bind=engine, expire_on_commit=False
-    )
+    sessionmaker: providers.Singleton[
+        async_sessionmaker[AsyncSession]
+    ] = providers.Singleton(async_sessionmaker, bind=engine, expire_on_commit=False)
 
     # Repositories
     user_repository = providers.Factory(UserRepository, sessionmaker=sessionmaker)

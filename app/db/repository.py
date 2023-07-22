@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Generic, TypeVar, Iterable
+from typing import Generic, TypeVar, Iterable, Any
 from abc import ABC
 
 from sqlalchemy import insert, select, ScalarResult, func, desc
@@ -37,7 +37,7 @@ class AbstractRepository(ABC, Generic[Model]):
             await session.refresh(obj)
         return obj
 
-    async def create_all(self, data: Iterable[dict]) -> ScalarResult[Model]:
+    async def create_all(self, data: Iterable[dict[str, Any]]) -> ScalarResult[Model]:
         async with self._sessionmaker() as session:
             result = await session.scalars(
                 insert(self.model).returning(self.model), data  # type: ignore
@@ -87,7 +87,9 @@ class PostRepository(AbstractRepository[Post]):
 class DigestRepository(AbstractRepository[Digest]):
     __model__ = Digest
 
-    async def get_by_date_and_user_id(self, user_id, created_at: date) -> Digest | None:
+    async def get_by_date_and_user_id(
+        self, user_id: int, created_at: date
+    ) -> Digest | None:
         async with self._sessionmaker() as session:
             return await session.scalar(
                 select(self.model)
@@ -95,8 +97,9 @@ class DigestRepository(AbstractRepository[Digest]):
                 .where(self.model.user_id == user_id)
             )
 
-    async def create(self, user: User) -> Digest:
-        """Create a digest for the user"""
+    async def create_digest(self, user: User) -> Digest:
+        """Create a digest for the user. Please, use only this method to create a Digest"""
+
         digest = await self.get_by_date_and_user_id(user.id, date.today())
         if digest:
             return digest
@@ -104,19 +107,26 @@ class DigestRepository(AbstractRepository[Digest]):
         query = (
             select(
                 Post,
-                (
-                    Post.popularity / (func.current_date() - self.model.created_at + 1)
-                ).label("relevant"),
+                (Post.popularity / (func.current_date() - Post.created_at + 1)).label(
+                    "relevant"
+                ),
             )
             .join(Post.tags)
             .where(Subscription.id.in_([tag.id for tag in user.subscriptions]))
             # Unique posts for each digest
-            .where(Post.id.not_in(select(links.PostDigestLink.post_id).join(Digest).where(Digest.user_id == user.id)))
-            .order_by(desc("relevant"))
+            .where(
+                Post.id.not_in(
+                    select(links.PostDigestLink.post_id)
+                    .join(Digest)
+                    .where(Digest.user_id == user.id)
+                )
+            )
+            .order_by(desc("relevant"))  # type: ignore
+            .group_by(Post.id)
             .limit(50)
         )
         async with self._sessionmaker() as session:
             posts = await session.scalars(query)
             posts = posts.all()
             session.expire_all()
-        return await super().create(Digest(posts=posts, user=user))
+        return await self.create(Digest(posts=posts, user=user))

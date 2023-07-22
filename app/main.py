@@ -19,4 +19,4 @@ def init_app() -> FastAPI:
 
 
 if __name__ == "__main__":
-    uvicorn.run(init_app())
+    uvicorn.run(init_app())  # type: ignore
