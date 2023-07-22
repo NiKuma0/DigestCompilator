@@ -22,9 +22,9 @@ class AbstractRepository(ABC, Generic[Model]):
     def model(cls) -> type[Model]:
         return cls.__model__
 
-    async def get_by_id(self, id: int) -> Model | None:
+    async def get_by_id(self, _id: int) -> Model | None:
         async with self._sessionmaker() as session:
-            return await session.get(self.model, id)
+            return await session.get(self.model, _id)
 
     async def get_all(self, limit: int = 10, offset: int = 0) -> ScalarResult[Model]:
         async with self._sessionmaker() as session:
