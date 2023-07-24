@@ -33,6 +33,13 @@ class Post(BaseModel):
         )
 
 
+class DigestRequest(BaseModel):
+    user_id: int
+    limit: int = 10
+    new_than: date | None = None
+    unique: bool = True
+
+
 class Digest(BaseModel):
     id: int
     user_id: int

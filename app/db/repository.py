@@ -97,13 +97,10 @@ class DigestRepository(AbstractRepository[Digest]):
                 .where(self.model.user_id == user_id)
             )
 
-    async def create_digest(self, user: User) -> Digest:
+    async def create_digest(
+        self, user: User, unique: bool, new_than: date | None, limit: int
+    ) -> Digest:
         """Create a digest for the user. Please, use only this method to create a Digest"""
-
-        digest = await self.get_by_date_and_user_id(user.id, date.today())
-        if digest:
-            return digest
-
         query = (
             select(
                 Post,
@@ -113,18 +110,20 @@ class DigestRepository(AbstractRepository[Digest]):
             )
             .join(Post.tags)
             .where(Subscription.id.in_([tag.id for tag in user.subscriptions]))
-            # Unique posts for each digest
-            .where(
+            .order_by(desc("relevant"))  # type: ignore
+            .group_by(Post.id)
+            .limit(limit)
+        )
+        if unique:
+            query = query.where(
                 Post.id.not_in(
                     select(links.PostDigestLink.post_id)
                     .join(Digest)
                     .where(Digest.user_id == user.id)
                 )
             )
-            .order_by(desc("relevant"))  # type: ignore
-            .group_by(Post.id)
-            .limit(50)
-        )
+        if new_than is not None:
+            query = query.where(Post.created_at >= new_than)
         async with self._sessionmaker() as session:
             posts = await session.scalars(query)
             posts = posts.all()
