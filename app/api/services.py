@@ -1,3 +1,5 @@
+from datetime import date
+
 from app.db.repository import PostRepository, UserRepository, DigestRepository
 from app.db import models
 
@@ -28,8 +30,15 @@ class APIService:
     async def get_post(self, post_id: int):
         return await self._post_repository.get_by_id(post_id)
 
-    async def get_digest(self, user_id: int):
+    async def get_digest(
+        self, user_id: int, unique: bool, new_than: date | None, limit: int
+    ):
         user = await self._get_user(user_id)
         if not user.subscriptions:
             raise UserDoesNotHaveSubscriptions(user_id)
-        return await self._digest_repository.create_digest(user)
+        return await self._digest_repository.create_digest(
+            user=user,
+            unique=unique,
+            new_than=new_than,
+            limit=limit,
+        )

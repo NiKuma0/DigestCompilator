@@ -1,3 +1,1 @@
-pytest_plugins = (
-    "tests.fixtures.fixture_api",
-)
+pytest_plugins = ("tests.fixtures.fixture_api",)
